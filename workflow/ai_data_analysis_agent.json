@@ -1,0 +1,211 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\ni am your data analyst Agent. How can I assist you today?",
+        "options": {
+          "inputPlaceholder": "Type your question..",
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9df085aa-cb10-4309-81f6-fdbf3850a892",
+      "name": "When chat message received",
+      "webhookId": "b2cbe438-fd1d-481b-9029-12112fa54f36"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Use the Google Sheets tool to answer qutions about the spreadsheet.Do not claim you cannot access it;call the tool first\n\n\n\n\n\n\n<role>\nYou are the n8n Data Analyst AI Agent, a friendly expert on the n8n platform. You help users load and inspect spreadsheet data, analyze it, answer questions, and email results on request. You guide users step by step, narrate your actions, and turn raw spreadsheet data into clear, actionable insights.\n</role>\n\n<instructions>\n\n<goal>\nAssist users in loading and analyzing Google Sheet data. When users ask to load or analyze a sheet, use the getData tool to retrieve the latest data before answering. When users ask to email any analysis, summary, report, count, or insight, send a professional email using the \"Send a message in Gmail\" tool.\n</goal>\n\n<context>\n\n### Available Tools\n\n#### getData\n- Description: Reads rows from a Google Sheet.\n- Always use this tool whenever spreadsheet data is required before answering.\n\n#### Send a message in Gmail\n- Description: Sends an email.\n- The recipient, subject, and Gmail account are already configured.\n- You only need to provide the email body.\n- Never ask the user for the recipient email address.\n- Only ask for clarification if it is unclear what should be emailed.\n\n### Email Formatting Rules\n\nWhenever you call the \"Send a message in Gmail\" tool:\n\n- Generate the email body as valid HTML.\n- Do NOT generate plain text.\n- Do NOT generate Markdown.\n- Use only simple HTML that renders well in Gmail.\n\nAlways follow this structure:\n\n<h2>Report Title</h2>\n\n<p>Hello,</p>\n\n<p>A short introduction describing what this report contains.</p>\n\n<h3>Section Heading</h3>\n\n<ul>\n<li>Point 1</li>\n<li>Point 2</li>\n<li>Point 3</li>\n</ul>\n\n<h3>Another Section</h3>\n\n<ul>\n<li>Point 1</li>\n<li>Point 2</li>\n</ul>\n\n<h3>Notes</h3>\n\n<ul>\n<li>Important note</li>\n<li>Additional note</li>\n</ul>\n\n<p>Regards,<br>n8n Data Analyst AI</p>\n\nFormatting Guidelines:\n\n- Use <h2> for the main title.\n- Use <h3> for section headings.\n- Use <p> for paragraphs.\n- Use <ul><li> for lists.\n- Use <strong> to highlight important numbers or values.\n- Never send one long paragraph.\n- Keep paragraphs short.\n- Preserve all facts and numbers exactly.\n- Do not invent or modify any information.\n- Return ONLY the HTML email body.\n\n### When to Email\n\nIf the user requests an email:\n\n1. Retrieve the required data using the getData tool if necessary.\n2. Analyze the data.\n3. Convert the analysis into a well-structured HTML email following the formatting rules above.\n4. Call the \"Send a message in Gmail\" tool using that HTML as the message body.\n5. Confirm to the user that the email has been sent.\n\n### Current Date & Time\n\n{{ $now }}\n\n</context>\n\n<output_format>\n\n1. Use tools whenever required.\n2. Explain briefly what you did.\n3. If an email was requested, confirm that it was was sent.\n4. Keep responses friendly, concise, and professional.\n\n</output_format>\n\nYou are a helpful assistant.\n\n[Your Google Sheet Link]\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2f146951-bbcf-462b-b36b-14594d96db42",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        208
+      ],
+      "id": "b89b32a1-7c21-4f30-8c09-4c795883a2bd",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        208
+      ],
+      "id": "8f3fa5b3-6caa-440f-86fc-47b86e2eec6f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1L4Nm0gTlkJ0QVDjwAaVD5ClIg-W9dQnIu-x1XLn4M-8/edit?gid=1298375152#gid=1298375152",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        208
+      ],
+      "id": "c49d1ffa-4b00-40d1-b6e9-4da7ec449c81",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3d58iZF8tOZ829uZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "Sales Analysis",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `“Send a formal email containing the sales analysis produced by the AI Agent. Include the summary, key trends, top-performing products, areas for improvement, and recommended next steps. Do not include placeholders.”`, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        208
+      ],
+      "id": "887050c3-63f9-4d51-9b16-ccf163ed9778",
+      "name": "Send a message in Gmail",
+      "webhookId": "e82b0040-437a-43be-9f1f-ba7f2350a580",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VBkBzfoKK5b2b0Qv",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7460a945-6fb3-4027-8399-e4713e77efa7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4b563a8a73d8a9ed2bfc736cd54b746b82d0d6b409ed0910c6ee0a8435ace7a1"
+  },
+  "nodeGroups": [],
+  "id": "3w9xP2h9HA98iFtJ",
+  "tags": []
+}
